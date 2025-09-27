@@ -59,8 +59,8 @@ app.post("/verify-payment", async (req, res) => {
 
     // Step 2: Append to Google Sheets
     const auth = new google.auth.GoogleAuth({
-      keyFile: "google-credentials.json", // service account JSON
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
     const sheets = google.sheets({ version: "v4", auth });
