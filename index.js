@@ -84,7 +84,7 @@ app.post("/verify-payment", async (req, res) => {
     });
 
     const sentFrom = new Sender(
-      "no-reply@test-q3enl6k70k542vwr.mlsender.net", // your MailerSend test domain
+      "abhiram@primeadagency.com", // your MailerSend test domain
       "AI Pro Guide"
     );
 
