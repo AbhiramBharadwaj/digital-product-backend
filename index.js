@@ -6,7 +6,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import { google } from "googleapis";
-import nodemailer from "nodemailer";
+import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ app.post("/create-order", async (req, res) => {
   }
 });
 
-// ✅ Payment verification + Google Sheets logging + PDF Email
+// ✅ Payment verification + Google Sheets logging + Email
 app.post("/verify-payment", async (req, res) => {
   const {
     razorpay_order_id,
@@ -78,31 +78,33 @@ app.post("/verify-payment", async (req, res) => {
       },
     });
 
-    // Step 3: Send Email with PDF (MailerSend SMTP)
-    const transporter = nodemailer.createTransport({
-      host: "smtp.mailersend.net",
-      port: 587,
-      auth: {
-        user: "api", // always "api"
-        pass: process.env.MAILERSEND_API_KEY,
-      },
+    // Step 3: Send Email (MailerSend API)
+    const mailerSend = new MailerSend({
+      apiKey: process.env.MAILERSEND_API_KEY,
     });
 
-    await transporter.sendMail({
-      from: `"AI Pro Guide" <no-reply@test-q3enl6k70k542vwr.mlsender.net>`,
-      to: email,
-      subject: "Your AI Pro Guide - ₹49",
-      text: `Hi ${name},\n\nThanks for your purchase! Find your guide attached.\n\nHappy Learning 🚀`,
-      attachments: [
-        {
-          filename: "Google-AI-Pro-Guide.pdf",
-          path: "./assets/guide.pdf", // ensure this file exists in backend repo
-        },
-      ],
-    });
+    const sentFrom = new Sender(
+      "no-reply@test-q3enl6k70k542vwr.mlsender.net", // your MailerSend test domain
+      "AI Pro Guide"
+    );
+
+    const recipients = [new Recipient(email, name)];
+
+    const emailParams = new EmailParams()
+      .setFrom(sentFrom)
+      .setTo(recipients)
+      .setSubject("Your AI Pro Guide Purchase")
+      .setText(
+        `Hi ${name},\n\nThanks for your payment of ₹49!\nYour purchase has been verified successfully.\n\nWe’ll send your PDF guide shortly.\n\n🚀 Cheers,\nTeam AI Pro Guide`
+      );
+
+    await mailerSend.email.send(emailParams);
 
     // Step 4: Respond to frontend
-    return res.json({ success: true, message: "Payment verified, PDF sent." });
+    return res.json({
+      success: true,
+      message: "Payment verified, email sent.",
+    });
   } catch (err) {
     console.error("❌ Error in verify-payment:", err);
     return res
