@@ -14,6 +14,12 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
+app.get("/ping", (req, res) => {
+  res.status(200).send("OK");
+});
+
+
 // ✅ Razorpay Order creation
 app.post("/create-order", async (req, res) => {
   try {
